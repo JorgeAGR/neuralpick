@@ -8,8 +8,9 @@ Created on Tue Jun 23 17:10:56 2020
 import os
 import argparse
 from src.models import PickingModel, CheckingModel
-from src.aux_funcs import check_String, read_Config
+from src.aux_funcs import read_Config
 from src.phase_picker import Picker
+from src.scanner import Scanner
 
 def pick(model_type, args):
     file_dir = args.file_path
@@ -17,7 +18,7 @@ def pick(model_type, args):
         file_dir += '/'
     if model_type == 'p':
         model = PickingModel(args.model_name)
-        Picker(model, args.phase, overwrite=args.nooverwrite)
+        Picker(file_dir, model, args.phase, overwrite=args.nooverwrite)
     else:
         print('ERROR: Invalid model type. Use a picking model.')
     return
@@ -28,7 +29,7 @@ def check(model_type, args):
         file_dir += '/'
     if model_type == 'c':
         model = CheckingModel(args.model_name)
-        pass
+        print('Coming soon!')
     else:
         print('ERROR: Invalid model type. Use a checking model.')
     return
@@ -39,7 +40,7 @@ def scan(model_type, args):
         file_dir += '/'
     if model_type == 'p':
         model = PickingModel(args.model_name)
-        pass
+        Scanner(file_dir, model, args.phase, args.begin, args.end, args.number)
     else:
         print('ERROR: Invalid model type. Use a picking model.')
     return
@@ -56,6 +57,8 @@ def train(model_type, args):
         model.trained = False
     model.train_Model()
     model.save_Model()
+    if model.trained:
+        print('Model already exists. Use -f option to force model training and overwrite previous model.')
     return
 
 parser = argparse.ArgumentParser(description='Software for training and deploying CNNs for seismic data quality checking and phase identification.')
@@ -81,14 +84,17 @@ parser_check.set_defaults(func=check)
 parser_scan = subparsers.add_parser('scan', help='Scan a set time range from a seismic phase to find pre/postcursors.')
 parser_scan.add_argument('file_path', help='Path to files to quality check.', type=str)
 parser_scan.add_argument('phase', help='Seismic phase to quality check around (case sensitive).', type=str)
-parser_scan.add_argument('times', help='Start and end time from the main arrival in seconds.', type=float, nargs=2)
+parser_scan.add_argument('begin', help='Start time from the main arrival in seconds.', type=float)
+parser_scan.add_argument('end', help='End time from the main arrival in seconds.', type=float)
 parser_scan.add_argument('model_name', help='Name of the model (barring the .conf extension).', type=str)
+parser_scan.add_argument('-n' , '--number', help='Number of relevant predictions to consider', type=float, default=10)
 parser_scan.set_defaults(func=scan)
 
 parser_train = subparsers.add_parser('train', help='Train a new picking or checking model using a seismic dataset.')
 parser_train.add_argument('model_name', help='Name of the model (barring the .conf extension).', type=str)
 parser_train.add_argument('-f', '--force',
-                          help='Optional argument to force the training and overwritting of an existing model.')
+                          help='Optional argument to force the training and overwritting of an existing model.',
+                          action='store_true')
 parser_train.set_defaults(func=train)
 
 args = parser.parse_args()
