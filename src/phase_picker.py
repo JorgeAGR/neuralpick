@@ -111,7 +111,7 @@ class Picker(object):
         shift = -seis.stats.sac.b
         begin_time = seis.stats.sac[phase_var] - self.time_window#seis.stats.sac.b
         begin_time = np.round(begin_time + shift, decimals=1)
-        end_time = seis.stats.sac[phase_var] + 2.5*self.time_window#seis.stats.sac.e
+        end_time = seis.stats.sac[phase_var] + 2*self.time_window#seis.stats.sac.e
         end_time = np.round(end_time + shift, decimals=1)
     
         time_i_grid = np.arange(begin_time, end_time - self.time_window, 1/self.resample_Hz)
