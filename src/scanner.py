@@ -120,7 +120,7 @@ class Scanner(object):
         arrivals = np.zeros(relevant_preds*2)
         arrivals_err = np.zeros(relevant_preds*2)
         arrivals_amps = np.zeros(relevant_preds*2)
-        arrivals_quality = np.zeros(relevants_preds*2)
+        arrivals_quality = np.zeros(relevant_preds*2)
         for n, neg in enumerate((False, True)):
             window_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model, negative=neg)
             
@@ -144,7 +144,7 @@ class Scanner(object):
         
         top_inds = np.argsort(arrivals_quality)[-relevant_preds:]
         arrivals = arrivals[top_inds]
-        arrivals_err = arrivals[top_inds]
+        arrivals_err = arrivals_err[top_inds]
         arrivals_amps = arrivals_amps[top_inds]
         arrivals_quality = arrivals_quality[top_inds]
 
