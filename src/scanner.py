@@ -116,40 +116,38 @@ class Scanner(object):
         time_i_grid = np.arange(begin_time, end_time - self.time_window + time_step, time_step)
         time_f_grid = np.arange(begin_time + self.time_window, end_time + time_step, time_step)
         #window_preds = np.zeros(len(time_i_grid))
-        window_pos_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model)
-        window_neg_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model)
         
-        dbscan = DBSCAN(eps=time_step/2, min_samples=2)
-        dbscan.fit(window_pos_preds.reshape(-1,1))
-        pos_clusters, pos_counts = np.unique(dbscan.labels_, return_counts=True)
-        if -1 in pos_clusters:
-            pos_clusters = pos_clusters[1:]
-            pos_counts = pos_counts[1:]
-        
-        dbscan.fit(window_neg_preds.reshape(-1,1))
-        neg_clusters, neg_counts = np.unique(dbscan.labels_, return_counts=True)
-        if -1 in neg_clusters:
-            neg_clusters = neg_clusters[1:]
-            neg_counts = neg_counts[1:]
+        arrivals = np.zeros(relevant_preds*2)
+        arrivals_err = np.zeros(relevant_preds*2)
+        arrivals_amps = np.zeros(relevant_preds*2)
+        arrivals_quality = np.zeros(relevants_preds*2)
+        for n, neg in enumerate((False, True)):
+            window_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model, negative=neg)
+            
+            dbscan = DBSCAN(eps=time_step/2, min_samples=2)
+            dbscan.fit(window_preds.reshape(-1,1))
+            clusters, counts = np.unique(dbscan.labels_, return_counts=True)
+            if -1 in clusters:
+                clusters = clusters[1:]
+                counts = counts[1:]
 
-        clusters = np.hstack([pos_clusters, neg_clusters])
-        counts = np.hstack([pos_counts, neg_counts])
-
-        discont_ind = np.argsort(counts)[-relevant_preds:]
-        clusters = clusters[discont_ind]
-        counts = counts[discont_ind]
-        arrivals = np.zeros(relevant_preds)
-        arrivals_err = np.zeros(relevant_preds)
-        arrivals_amps = np.zeros(relevant_preds)
-        arrivals_quality = np.zeros(relevant_preds)
-        for i, c in enumerate(clusters):
-            arrivals[i] = np.mean(window_preds[dbscan.labels_ == c])
-            arrivals_err[i] = np.std(window_preds[dbscan.labels_ == c])
-            arrivals_quality[i] = counts[i] / self.n_preds
-            initamp = np.where(times < arrivals[i])[0][-1]
-            arrivals_amps[i] = seis.data[initamp:initamp+2].max()
+            discont_ind = np.argsort(counts)[-relevant_preds:]
+            clusters = clusters[discont_ind]
+            counts = counts[discont_ind]
+            for i, c in enumerate(clusters):
+                arrivals[i+n*relevant_preds] = np.mean(window_preds[dbscan.labels_ == c])
+                arrivals_err[i+n*relevant_preds] = np.std(window_preds[dbscan.labels_ == c])
+                arrivals_quality[i+n*relevant_preds] = counts[i] / self.n_preds
+                initamp = np.where(times < arrivals[i+n*relevant_preds])[0][-1]
+                arrivals_amps[i+n*relevant_preds] = seis.data[initamp:initamp+2].max()
         arrivals = arrivals - shift
         
+        top_inds = np.argsort(arrivals_quality)[-relevant_preds:]
+        arrivals = arrivals[top_inds]
+        arrivals_err = arrivals[top_inds]
+        arrivals_amps = arrivals_amps[top_inds]
+        arrivals_quality = arrivals_quality[top_inds]
+
         make_string = lambda x: '{},{},{},{}'.format(arrivals[x],arrivals_err[x],arrivals_amps[x],arrivals_quality[x])
         result_strings = list(map(make_string, range(relevant_preds)))
         return seis.stats.sac.gcarc, result_strings
