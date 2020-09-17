@@ -115,16 +115,26 @@ class Scanner(object):
         time_step = 1/self.resample_Hz
         time_i_grid = np.arange(begin_time, end_time - self.time_window + time_step, time_step)
         time_f_grid = np.arange(begin_time + self.time_window, end_time + time_step, time_step)
-        window_preds = np.zeros(len(time_i_grid))
-        window_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model)
+        #window_preds = np.zeros(len(time_i_grid))
+        window_pos_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model)
+        window_neg_preds = self.scan(seis, times, time_i_grid, time_f_grid, shift, model)
         
         dbscan = DBSCAN(eps=time_step/2, min_samples=2)
-        dbscan.fit(window_preds.reshape(-1,1))
-        clusters, counts = np.unique(dbscan.labels_, return_counts=True)
-        if -1 in clusters:
-            clusters = clusters[1:]
-            counts = counts[1:]
+        dbscan.fit(window_pos_preds.reshape(-1,1))
+        pos_clusters, pos_counts = np.unique(dbscan.labels_, return_counts=True)
+        if -1 in pos_clusters:
+            pos_clusters = pos_clusters[1:]
+            pos_counts = pos_counts[1:]
         
+        dbscan.fit(window_neg_preds.reshape(-1,1))
+        neg_clusters, neg_counts = np.unique(dbscan.labels_, return_counts=True)
+        if -1 in neg_clusters:
+            neg_clusters = neg_clusters[1:]
+            neg_counts = neg_counts[1:]
+
+        clusters = np.hstack([pos_clusters, neg_clusters])
+        counts = np.hstack([pos_counts, neg_counts])
+
         discont_ind = np.argsort(counts)[-relevant_preds:]
         clusters = clusters[discont_ind]
         counts = counts[discont_ind]
