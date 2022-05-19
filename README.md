@@ -1,9 +1,15 @@
 # neuralpick
-Phase picking and quality checking library for use with seismic data. Experimental Python wrapper tool that allow users to train and use computer vision models for characterizing their own seismic waveform data sets\
+Phase picking and quality checking library for use with seismic data. Experimental Python wrapper tool that allow users to train and use computer vision models for characterizing their own seismic waveform data sets
 
-WIP, currently halted due to work conflicts of interest.\
 
-Created by Jorge A Garcia, 2020\
+WIP, currently halted due to work conflicts of interest.
 
-Train your own model, which can be used to pick seismic phases in new seismograms.\
+
+Created by Jorge A Garcia, 2020
+
+
+Train your own model, which can be used to pick seismic phases in new seismograms.
+
+
+Quick visual demonstration of the basic scanning function after obtaining your trained model.
 ![Pick scan](https://github.com/JorgeAGR/neuralpick/blob/master/src/movie_arrival_pick.gif)
