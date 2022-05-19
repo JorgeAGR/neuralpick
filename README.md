@@ -11,5 +11,5 @@ Created by Jorge A Garcia, 2020
 Train your own model, which can be used to pick seismic phases in new seismograms.
 
 
-Quick visual demonstration of the basic scanning function after obtaining your trained model.
+Quick visual demonstration of the basic scanning function after obtaining your trained model. The gray are the sliding input windows being fed into the model, with the red being the predicted pick. Notice the consistent picks when the arrival peak is enclosed (can be trained similarly on the onset).
 ![Pick scan](https://github.com/JorgeAGR/neuralpick/blob/master/src/movie_arrival_pick.gif)
